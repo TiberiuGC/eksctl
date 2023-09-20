@@ -228,14 +228,14 @@ func (n *NodeGroupDrainer) evictPods(ctx context.Context, node string) error {
 				logger.Warning("%d pods are unevictable from node %s", len(pods), node)
 				previousReportTime = time.Now()
 			}
-			logger.Debug("%d pods to be evicted from %s", pods, node)
+			// logger.Debug("%d pods to be evicted from %s", pods, node)
 			failedEvictions := false
 			for _, pod := range pods {
 				if err := n.evictor.EvictOrDeletePod(pod); err != nil {
 					if !isEvictionErrorRecoverable(err) {
 						return errors.Wrapf(err, "unrecoverable error evicting pod: %s/%s", pod.Namespace, pod.Name)
 					}
-					logger.Debug("recoverable pod eviction failure: %q", err)
+					logger.Debug("recoverable pod eviction failure: %q", err.Error())
 					failedEvictions = true
 				}
 			}
