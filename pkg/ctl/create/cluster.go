@@ -22,7 +22,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/actions/flux"
 	"github.com/weaveworks/eksctl/pkg/actions/karpenter"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
@@ -408,11 +407,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ngFilter *filter.NodeGroupFilter, params
 			ngCtx, cancel := context.WithTimeout(ctx, cmd.ProviderConfig.WaitTimeout)
 			defer cancel()
 			for _, ng := range cfg.NodeGroups {
-				// authorise nodes to join
-				if err := authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
-					return err
-				}
-
 				// wait for nodes to join
 				if err := eks.WaitForNodes(ngCtx, clientSet, ng); err != nil {
 					return err
