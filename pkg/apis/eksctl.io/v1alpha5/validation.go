@@ -200,6 +200,12 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return err
 	}
 
+	if len(cfg.AccessConfig.AccessEntries) > 0 {
+		if err := validateAccessEntries(cfg.AccessConfig.AccessEntries); err != nil {
+			return err
+		}
+	}
+
 	if err := validateKarpenterConfig(cfg); err != nil {
 		return fmt.Errorf("failed to validate Karpenter config: %w", err)
 	}
