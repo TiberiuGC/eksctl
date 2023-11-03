@@ -590,7 +590,7 @@ func matchesCluster(clusterName string, tags []types.Tag) bool {
 
 // DeleteStackBySpecSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
 // any errors will be written to errs channel, assume completion when nil is written, do not expect
-// more then one error value on the channel, it's closed immediately after it is written to
+// more than one error value on the channel, it's closed immediately after it is written to
 func (c *StackCollection) DeleteStackBySpecSync(ctx context.Context, s *Stack, errs chan error) error {
 	i, err := c.DeleteStackBySpec(ctx, s)
 	if err != nil {
