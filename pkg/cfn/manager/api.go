@@ -198,7 +198,7 @@ func (c *StackCollection) createClusterStack(ctx context.Context, stackName stri
 			}
 
 			logger.Critical("unexpected status %q while waiting for CloudFormation stack %q", stack.StackStatus, *stack.StackName)
-			c.troubleshootStackFailureCause(ctx, stack, string(types.StackStatusCreateComplete))
+			c.TroubleshootStackFailureCause(ctx, stack, types.StackStatusCreateComplete)
 		}
 
 		ctx, cancelFunc := context.WithTimeout(context.Background(), c.waitTimeout)
@@ -468,19 +468,16 @@ func (c *StackCollection) ListStacksMatching(ctx context.Context, nameRegex stri
 	return stacks, nil
 }
 
-// ListClusterStackNames gets all stack names matching regex
-func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, error) {
-	var stacks []string
-	re, err := regexp.Compile(clusterStackRegex)
+// ListStackNames lists all stack names matching regExp.
+func (c *StackCollection) ListStackNames(ctx context.Context, regExp string) ([]string, error) {
+	re, err := regexp.Compile(regExp)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot list stacks")
+		return nil, fmt.Errorf("unexpected error compiling RegExp: %w", err)
 	}
-	input := &cloudformation.ListStacksInput{
+	paginator := cloudformation.NewListStacksPaginator(c.cloudformationAPI, &cloudformation.ListStacksInput{
 		StackStatusFilter: defaultStackStatusFilter(),
-	}
-
-	paginator := cloudformation.NewListStacksPaginator(c.cloudformationAPI, input)
-
+	})
+	var stackNames []string
 	for paginator.HasMorePages() {
 		out, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -489,12 +486,22 @@ func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, 
 
 		for _, s := range out.StackSummaries {
 			if re.MatchString(*s.StackName) {
-				stacks = append(stacks, *s.StackName)
+				stackNames = append(stackNames, *s.StackName)
 			}
 		}
 	}
 
-	return stacks, nil
+	return stackNames, nil
+}
+
+// ListClusterStackNames gets all stack names matching regex
+func (c *StackCollection) ListClusterStackNames(ctx context.Context) ([]string, error) {
+	return c.ListStackNames(ctx, clusterStackRegex)
+}
+
+// ListAccessEntryStackNames lists the stack names for all access entries in the specified cluster.
+func (c *StackCollection) ListAccessEntryStackNames(ctx context.Context, clusterName string) ([]string, error) {
+	return c.ListStackNames(ctx, fmt.Sprintf("^eksctl-%s-accessentry-*", clusterName))
 }
 
 // ListStacksWithStatuses gets all of CloudFormation stacks
