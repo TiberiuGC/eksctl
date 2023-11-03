@@ -1016,6 +1016,7 @@ func NewClusterConfig() *ClusterConfig {
 			ClusterLogging: &ClusterCloudWatchLogging{},
 		},
 		PrivateCluster: &PrivateCluster{},
+		AccessConfig:   &AccessConfig{},
 	}
 
 	return cfg
@@ -1947,8 +1948,9 @@ type AccessConfig struct {
 	AccessEntries []AccessEntry `json:"accessEntries,omitempty"`
 }
 
+// IsAccessEntryEnabled reports whether the cluster has access entries enabled.
 func IsAccessEntryEnabled(cluster *ekstypes.Cluster) bool {
-	return cluster.AccessConfig.AuthenticationMode != ekstypes.AuthenticationModeConfigMap
+	return cluster.AccessConfig != nil && cluster.AccessConfig.AuthenticationMode != ekstypes.AuthenticationModeConfigMap
 }
 
 // UnsupportedFeatureError is an error that represents an unsupported feature
