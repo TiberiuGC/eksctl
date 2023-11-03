@@ -97,6 +97,10 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 		role = &gfniam.Role{
 			AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
 				MakeServiceRef("EKS"),
+				MakeServiceRef("EC2"),
+				gfnt.NewString("eks-beta-pdx.aws.internal"),
+				gfnt.NewString("us-west-2.eks-managed-nodes-beta.aws.internal"),
+				gfnt.NewString("eks-nodegroup.amazonaws.com"),
 			),
 			ManagedPolicyArns: gfnt.NewSlice(makePolicyARNs(managedPolicyARNs...)...),
 		}
