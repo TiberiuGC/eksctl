@@ -655,10 +655,10 @@ var _ = Describe("Cluster Template Builder", func() {
 		})
 
 		Context("accessConfig with default values", func() {
-			It("should set bootstrapClusterCreatorAdminPermissions to false and authenticationMode to API_AND_CONFIG_MAP in the CFN template", func() {
+			It("should set bootstrapClusterCreatorAdminPermissions to false and authenticationMode to CONFIG_MAP in the CFN template", func() {
 				accessConfig := clusterTemplate.Resources["ControlPlane"].Properties.AccessConfig
 				Expect(accessConfig.BootstrapClusterCreatorAdminPermissions).To(BeTrue())
-				Expect(accessConfig.AuthenticationMode).To(Equal(string(ekstypes.AuthenticationModeApiAndConfigMap)))
+				Expect(accessConfig.AuthenticationMode).To(Equal(string(ekstypes.AuthenticationModeConfigMap)))
 			})
 		})
 
