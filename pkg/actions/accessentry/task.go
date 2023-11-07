@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	cfntypes "github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	awseks "github.com/aws/aws-sdk-go-v2/service/eks"
 
 	"github.com/kris-nova/logger"
 
