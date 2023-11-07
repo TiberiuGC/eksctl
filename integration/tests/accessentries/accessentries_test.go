@@ -113,6 +113,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		},
 	})
 	Expect(err).NotTo(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 	namespaceRoleARN = *roleOutput.Role.Arn
 
 	return []byte(userARN + "," + clusterRoleARN + "," + namespaceRoleARN)
