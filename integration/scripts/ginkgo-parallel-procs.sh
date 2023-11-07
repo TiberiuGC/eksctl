@@ -12,6 +12,9 @@ case $1 in
   "windows")
     echo "${PARALLEL_PROCS}3"
     ;;
+  "accessentries")
+    echo "${PARALLEL_PROCS}2"
+    ;;
   *)
     echo ""
     ;;
