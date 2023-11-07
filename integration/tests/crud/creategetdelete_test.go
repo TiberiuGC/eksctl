@@ -1047,7 +1047,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		})
 	})
 
-	Context("access entries", func() {
+	Context("access entries", Serial, func() {
 		hasAuthIdentity := func(nodeRoleARN string) bool {
 			auth, err := authconfigmap.NewFromClientSet(makeClientset())
 			Expect(err).NotTo(HaveOccurred())
@@ -1063,8 +1063,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		type authMode int
 		const (
-			authModeCustom authMode = iota
-			authModeAccessEntry
+			authModeAccessEntry authMode = iota + 1
 			authModeAWSAuthConfigMap
 		)
 
@@ -1075,6 +1074,15 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			expectedAuthMode       authMode
 			expectedCreateNgOutput string
 		}
+
+		It("should set the authentication mode to API_AND_CONFIG_MAP", func() {
+			cmd := params.EksctlUtilsCmd.
+				WithArgs(
+					"--cluster", params.ClusterName,
+					"--authentication-mode", string(ekstypes.AuthenticationModeApiAndConfigMap),
+				)
+			Expect(cmd).To(RunSuccessfully())
+		})
 
 		DescribeTable("authorising self-managed nodegroups", Serial, func(nt ngAuthTest) {
 			cmd := params.EksctlCreateNodegroupCmd.

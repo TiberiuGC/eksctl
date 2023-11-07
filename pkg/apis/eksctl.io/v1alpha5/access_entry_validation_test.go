@@ -1,6 +1,8 @@
 package v1alpha5_test
 
 import (
+	ekstypes "github.com/aws/aws-sdk-go-v2/service/eks/types"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -8,14 +10,16 @@ import (
 )
 
 type accessEntryTest struct {
-	accessEntries []api.AccessEntry
-	expectedErr   string
+	authenticationMode ekstypes.AuthenticationMode
+	accessEntries      []api.AccessEntry
+	expectedErr        string
 }
 
 var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 	clusterConfig := api.NewClusterConfig()
 	clusterConfig.AccessConfig = &api.AccessConfig{
-		AccessEntries: aet.accessEntries,
+		AccessEntries:      aet.accessEntries,
+		AuthenticationMode: aet.authenticationMode,
 	}
 	err := api.ValidateClusterConfig(clusterConfig)
 	if aet.expectedErr != "" {
@@ -24,7 +28,27 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 		Expect(err).NotTo(HaveOccurred())
 	}
 },
+	Entry("access entries specified when authentication mode is set to CONFIG_MAP", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeConfigMap,
+		accessEntries: []api.AccessEntry{
+			{
+				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
+				AccessPolicies: []api.AccessPolicy{
+					{
+						PolicyARN: api.MustParseARN("arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"),
+						AccessScope: api.AccessScope{
+							Type: "cluster",
+						},
+					},
+				},
+			},
+		},
+
+		expectedErr: "accessConfig.authenticationMode must be set to either API_AND_CONFIG_MAP or API to create access entries",
+	}),
+
 	Entry("empty principal ARN", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 		accessEntries: []api.AccessEntry{
 			{},
 		},
@@ -33,6 +57,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 	}),
 
 	Entry("empty policy ARN", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 		accessEntries: []api.AccessEntry{
 			{
 				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
@@ -46,6 +71,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 	}),
 
 	Entry("empty accessScope.type", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApi,
 		accessEntries: []api.AccessEntry{
 			{
 				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
@@ -61,6 +87,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 	}),
 
 	Entry("invalid accessScope.type", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 		accessEntries: []api.AccessEntry{
 			{
 				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
@@ -79,6 +106,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 	}),
 
 	Entry("namespaces set for cluster access scope", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApi,
 		accessEntries: []api.AccessEntry{
 			{
 				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
@@ -98,6 +126,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 	}),
 
 	Entry("namespaces set for cluster access scope", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 		accessEntries: []api.AccessEntry{
 			{
 				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
@@ -116,6 +145,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 	}),
 
 	Entry("duplicate principal ARN", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApi,
 		accessEntries: []api.AccessEntry{
 			{
 				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
@@ -157,6 +187,7 @@ var _ = DescribeTable("Access Entry validation", func(aet accessEntryTest) {
 	}),
 
 	Entry("valid access entries", accessEntryTest{
+		authenticationMode: ekstypes.AuthenticationModeApiAndConfigMap,
 		accessEntries: []api.AccessEntry{
 			{
 				PrincipalARN: api.MustParseARN("arn:aws:iam::111122223333:role/role-1"),
