@@ -953,6 +953,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				).
 					WithoutArg("--region", params.Region).
 					WithStdin(clusterutils.Reader(clusterConfig))).To(RunSuccessfully())
+
+				Expect(params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--wait",
+					newSubnetConfigFileMng,
+				)).To(RunSuccessfully())
 			})
 
 			It("should be able to create a nodegroup in a new subnet via CLI", func() {
@@ -963,6 +971,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--nodes", "1",
 					"--node-type", "p2.xlarge",
 					"--subnet-ids", extraSubnetID,
+					newSubnetCLIMng,
+				)).To(RunSuccessfully())
+
+				Expect(params.EksctlDeleteCmd.WithArgs(
+					"nodegroup",
+					"--verbose", "4",
+					"--cluster", params.ClusterName,
+					"--wait",
 					newSubnetCLIMng,
 				)).To(RunSuccessfully())
 			})
@@ -1074,15 +1090,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			expectedAuthMode       authMode
 			expectedCreateNgOutput string
 		}
-
-		It("should set the authentication mode to API_AND_CONFIG_MAP", func() {
-			cmd := params.EksctlUtilsCmd.
-				WithArgs(
-					"--cluster", params.ClusterName,
-					"--authentication-mode", string(ekstypes.AuthenticationModeApiAndConfigMap),
-				)
-			Expect(cmd).To(RunSuccessfully())
-		})
 
 		DescribeTable("authorising self-managed nodegroups", Serial, func(nt ngAuthTest) {
 			cmd := params.EksctlCreateNodegroupCmd.
@@ -1196,14 +1203,17 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				ContainElement(scaleMultipleMng),
 				ContainElement(GPUMng),
 				ContainElement(drainMng),
-				ContainElement(newSubnetCLIMng),
-				ContainElement(newSubnetConfigFileMng),
 			)))
 		})
 	})
 })
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
+	// before deleting the cluster, first delete the additional subnet
+	ec2 := awsec2.NewFromConfig(NewConfig(params.Region))
+	_, err := ec2.DeleteSubnet(context.Background(), &awsec2.DeleteSubnetInput{SubnetId: &extraSubnetID})
+	Expect(err).NotTo(HaveOccurred())
+
 	Expect(params.EksctlDeleteCmd.WithArgs(
 		"cluster", params.ClusterName,
 		"--wait",
