@@ -16,10 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
-var (
-	ErrDisabledAccessEntryAPI = fmt.Errorf("access entries API is not currently enabled; please enable it using `eksctl utils update-authentication-mode --cluster <> --authenticationMode=API_AND_CONFIG_MAP`")
-	unknownARN                = api.ARN{Partition: "unknown"}
-)
+var unknownARN = api.ARN{Partition: "unknown"}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_creator.go . StackCreator
