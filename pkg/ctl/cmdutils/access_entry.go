@@ -23,6 +23,7 @@ var (
 func NewCreateAccessEntryLoader(cmd *Cmd, accessEntry *api.AccessEntry) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
+	const principalARNFlag = "principal-arn"
 	l.flagsIncompatibleWithConfigFile = sets.NewString(
 		principalARNFlag,
 		"kubernetes-groups",

@@ -12,6 +12,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
+var unknownARN = api.ARN{Partition: "unknown"}
+
 type Remover struct {
 	clusterName  string
 	stackRemover StackRemover

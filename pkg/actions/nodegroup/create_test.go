@@ -534,26 +534,6 @@ var _ = DescribeTable("Create", func(t ngEntry) {
 		expectedErr: errors.New("--update-auth-configmap is not supported when authenticationMode is set to API"),
 	}),
 
-	Entry("fails to create nodegroup when authenticationMode is API and updateAuthConfigMap is supplied", ngEntry{
-		opts: nodegroup.CreateOpts{
-			UpdateAuthConfigMap: api.Enabled(),
-		},
-		mockCalls: func(m mockCalls) {
-			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{
-				AuthenticationMode: ekstypes.AuthenticationModeApi,
-			})
-			defaultProviderMocks(m.mockProvider, defaultOutput)
-		},
-		refreshCluster: true,
-		expectedCalls: func(e expectedCalls) {
-			Expect(e.kubeProvider.NewRawClientCallCount()).To(Equal(0))
-			Expect(e.kubeProvider.ServerVersionCallCount()).To(Equal(0))
-			Expect(e.nodeGroupFilter.SetOnlyLocalCallCount()).To(Equal(0))
-		},
-
-		expectedErr: errors.New("--update-auth-configmap is not supported when authenticationMode is set to API"),
-	}),
-
 	Entry("creates nodegroup using access entries when authenticationMode is API_AND_CONFIG_MAP and updateAuthConfigMap is not supplied", ngEntry{
 		mockCalls: func(m mockCalls) {
 			mockProviderWithConfig(m.mockProvider, defaultOutput, nil, nil, &ekstypes.AccessConfigResponse{

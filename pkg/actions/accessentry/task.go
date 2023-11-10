@@ -16,8 +16,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
-var unknownARN = api.ARN{Partition: "unknown"}
-
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate -o fakes/fake_stack_creator.go . StackCreator
 type StackCreator interface {

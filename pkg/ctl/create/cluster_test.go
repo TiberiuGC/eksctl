@@ -48,7 +48,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-	"github.com/weaveworks/eksctl/pkg/utils/tasks"
 )
 
 const outpostARN = "arn:aws:outposts:us-west-2:1234:outpost/op-1234"
@@ -298,9 +297,7 @@ var _ = Describe("create cluster", func() {
 		}
 		filter.SetExcludeAll(params.WithoutNodeGroup)
 		var accessEntryCreator accessentryfakes.FakeCreatorInterface
-		accessEntryCreator.CreateTasksStub = func(_ context.Context, _ []api.AccessEntry) *tasks.TaskTree {
-			return nil
-		}
+		accessEntryCreator.CreateTasksReturns(nil)
 		err := doCreateCluster(cmd, filter, params, ctl, func(_ string, _ accessentry.StackCreator) accessentry.CreatorInterface {
 			return &accessEntryCreator
 		})
