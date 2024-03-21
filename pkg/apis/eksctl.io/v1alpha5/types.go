@@ -221,6 +221,7 @@ const (
 // Values for `NodeAMIFamily`
 // All valid values of supported families should go in this block
 const (
+
 	// DefaultNodeImageFamily (default)
 	DefaultNodeImageFamily      = NodeImageFamilyAmazonLinux2
 	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
