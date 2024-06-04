@@ -401,7 +401,8 @@ func AssignSubnets(ctx context.Context, np api.NodePool, clusterConfig *api.Clus
 	}
 
 	supportedZones, err := az.FilterBasedOnAvailability(ctx, clusterConfig.AvailabilityZones, []api.NodePool{np}, ec2API)
-	if err != nil {
+	var azInstanceSupportErr *az.AZInstanceSupportError
+	if err != nil && !errors.As(err, &azInstanceSupportErr) {
 		return nil, err
 	}
 

@@ -2,6 +2,7 @@ package az
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	gostrings "strings"
@@ -17,6 +18,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/nodes"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
+
+type AZInstanceSupportError struct{}
+
+func (e AZInstanceSupportError) Error() string {
+	return "some of the defined AZs don't support requested instance types; follow the logs for details"
+}
 
 var zoneIDsToAvoid = map[string][]string{
 	api.RegionCNNorth1: {"cnn1-az4"}, // https://github.com/eksctl-io/eksctl/issues/3916
@@ -81,8 +88,21 @@ func getZones(ctx context.Context, ec2API awsapi.EC2, region string, spec *api.C
 		return nil, fmt.Errorf("error getting availability zones for region %s: %w", region, err)
 	}
 
-	filteredZones := filterZones(region, output.AvailabilityZones)
-	return FilterBasedOnAvailability(ctx, filteredZones, nodes.ToNodePools(spec), ec2API)
+	// first, remove any zones that need to be avoided from the output
+	var zones []string
+	for _, z := range output.AvailabilityZones {
+		if !strings.Contains(zoneIDsToAvoid[region], *z.ZoneId) {
+			zones = append(zones, *z.ZoneName)
+		}
+	}
+
+	// afterwards, filter zones by AZs' support for desired instance types
+	filteredZones, err := FilterBasedOnAvailability(ctx, zones, nodes.ToNodePools(spec), ec2API)
+	var azInstanceSupportErr *AZInstanceSupportError
+	if errors.As(err, &azInstanceSupportErr) {
+		return filteredZones, nil
+	}
+	return filteredZones, err
 }
 
 func FilterBasedOnAvailability(ctx context.Context, zones []string, np []api.NodePool, ec2API awsapi.EC2) ([]string, error) {
@@ -113,8 +133,11 @@ func FilterBasedOnAvailability(ctx context.Context, zones []string, np []api.Nod
 		if len(noSupport) == 0 {
 			filteredList = append(filteredList, zone)
 		} else {
-			logger.Info("skipping %s from selection because it doesn't support the following instance type(s): %s", zone, gostrings.Join(noSupport, ","))
+			logger.Warning("skipping %q from selection because it doesn't support the following instance type(s): %s", zone, gostrings.Join(noSupport, ","))
 		}
+	}
+	if len(filteredList) < len(zones) {
+		return filteredList, AZInstanceSupportError{}
 	}
 	return filteredList, nil
 }
