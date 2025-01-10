@@ -600,6 +600,10 @@ func (c *ClusterConfig) ValidatePrivateCluster() error {
 
 // validateKubernetesNetworkConfig validates the k8s network config
 func (c *ClusterConfig) validateKubernetesNetworkConfig() error {
+	// this check ensured the validation is only run on cluster creation
+	if c.Status != nil {
+		return nil
+	}
 	if c.KubernetesNetworkConfig == nil {
 		return nil
 	}
